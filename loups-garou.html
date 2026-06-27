@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loups-Garou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300..700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+/* ============================================================
+   Loups-Garou — Game Master Web App
+   Images: ./cupidon.png, ./voleur.png, ./voyante.png,
+           ./loups.png, ./sorciere.png, ./chasseur.png,
+           ./joueurdeflute.png, ./villageois.png, ./vote.png
+   Sounds: ./cupidon.mp3, ./voleur.mp3, ./voyante.mp3,
+           ./loups.mp3, ./sorcière.mp3, ./chasseur.mp3,
+           ./joueur de flute.mp3, ./attente.mp3, ./vote.mp3,
+           ./dormir.mp3, ./reveilnodeath.mp3, ./reveildeath.mp3
+   ============================================================ */
+:root {
+  --text-xs:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+  --text-sm:   clamp(0.875rem, 0.8rem  + 0.35vw, 1rem);
+  --text-base: clamp(1rem,     0.95rem + 0.25vw, 1.125rem);
+  --text-lg:   clamp(1.125rem, 1rem    + 0.75vw, 1.5rem);
+  --text-xl:   clamp(1.5rem,   1.2rem  + 1.25vw, 2.25rem);
+  --space-1:0.25rem;--space-2:0.5rem;--space-3:0.75rem;--space-4:1rem;
+  --space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;
+  --space-12:3rem;--space-16:4rem;
+  --radius-sm:0.375rem;--radius-md:0.5rem;--radius-lg:0.75rem;
+  --radius-xl:1rem;--radius-2xl:1.25rem;--radius-full:9999px;
+  --transition:200ms cubic-bezier(0.16,1,0.3,1);
+  --spring:cubic-bezier(0.34,1.56,0.64,1);
+  --font-display:'Cinzel','Georgia',serif;
+  --font-body:'Inter','Helvetica Neue',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#120001;--surface:#1a0002;--surface-2:#200003;--surface-offset:#2a0004;
+  --border:rgba(255,233,222,0.10);--text:#FFE9DE;--text-muted:rgba(255,233,222,0.65);
+  --text-faint:rgba(255,233,222,0.35);--accent:#FFE9DE;--accent-fg:#270001;
+  --shadow-md:0 4px 16px rgba(0,0,0,0.5);--shadow-lg:0 12px 40px rgba(0,0,0,0.6);
+  --gradient-bottom:rgba(18,0,1,0.95);
+}
+[data-theme="light"]{
+  --bg:#FFE9DE;--surface:#FDF0E8;--surface-2:#FAF0E8;--surface-offset:#F5E4D6;
+  --border:rgba(39,0,1,0.12);--text:#270001;--text-muted:rgba(39,0,1,0.65);
+  --text-faint:rgba(39,0,1,0.35);--accent:#270001;--accent-fg:#FFE9DE;
+  --shadow-md:0 4px 16px rgba(39,0,1,0.10);--shadow-lg:0 12px 40px rgba(39,0,1,0.15);
+  --gradient-bottom:rgba(240,196,168,0.97);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:none;scroll-behavior:smooth;}
+body{font-family:var(--font-body);font-size:var(--text-base);color:var(--text);
+  background:var(--bg);min-height:100dvh;line-height:1.6;
+  -webkit-font-smoothing:antialiased;transition:background 0.3s ease,color 0.3s ease;
+  overflow-x:hidden;}
+img{display:block;max-width:100%;height:auto;}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
+input{font:inherit;}
+ul{list-style:none;}
+
+/* ── LAYOUT ── */
+.app{max-width:480px;margin:0 auto;padding:0 var(--space-4);padding-bottom:140px;}
+
+/* ── HEADER ── */
+.header{text-align:center;padding:var(--space-8) 0 var(--space-4);}
+.header h1{font-family:var(--font-display);font-size:var(--text-xl);font-weight:900;
+  letter-spacing:0.03em;color:var(--text);}
+.header-subtitle{font-size:var(--text-xs);color:var(--text-muted);
+  letter-spacing:0.12em;text-transform:uppercase;margin-top:var(--space-1);}
+
+/* ── DEAD BANNER ── */
+.dead-banner{background:rgba(180,0,0,0.10);border:1px solid rgba(180,0,0,0.28);
+  border-radius:var(--radius-2xl);padding:var(--space-4);margin-bottom:var(--space-4);}
+.dead-banner-title{font-size:var(--text-base);font-weight:700;display:flex;
+  align-items:center;gap:var(--space-2);margin-bottom:var(--space-3);}
+.dead-item{display:flex;align-items:center;gap:var(--space-3);
+  padding:var(--space-2) var(--space-1);font-size:var(--text-sm);font-weight:600;}
+.dead-dot{width:8px;height:8px;border-radius:50%;background:rgba(220,50,50,0.75);flex-shrink:0;}
+
+/* ── JDF WIN ── */
+.jdf-win-banner{background:rgba(128,0,255,0.15);border:1px solid rgba(150,50,255,0.45);
+  border-radius:var(--radius-xl);padding:var(--space-3) var(--space-4);
+  margin-bottom:var(--space-4);display:flex;align-items:center;
+  gap:var(--space-3);font-size:var(--text-sm);font-weight:600;}
+
+/* ── COLLAPSIBLE ── */
+.collapsible{background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:var(--radius-2xl);margin-bottom:var(--space-3);overflow:hidden;
+  transition:background var(--transition);}
+[data-theme="light"] .collapsible{background:rgba(39,0,1,0.04);}
+.collapsible-header{display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-4);cursor:pointer;user-select:none;width:100%;text-align:left;}
+.collapsible-title{font-size:var(--text-base);font-weight:700;}
+.collapsible-sub{font-size:var(--text-xs);color:var(--text-muted);margin-top:2px;}
+.collapsible-icon{transition:transform 0.25s var(--spring);color:var(--text-muted);flex-shrink:0;}
+.collapsible.open .collapsible-icon{transform:rotate(180deg);}
+.collapsible-body{max-height:0;overflow:hidden;transition:max-height 0.35s cubic-bezier(0.4,0,0.2,1);}
+.collapsible.open .collapsible-body{max-height:700px;}
+.collapsible-inner{padding:0 var(--space-4) var(--space-4);}
+
+/* ── CARD SETUP ── */
+.card-row{display:flex;align-items:center;gap:var(--space-3);
+  padding:var(--space-2) 0;border-bottom:1px solid var(--border);}
+.card-row:last-of-type{border-bottom:none;}
+.card-row-img{width:42px;height:42px;border-radius:var(--radius-lg);
+  background:var(--surface-offset);flex-shrink:0;overflow:hidden;}
+.card-row-img img{width:100%;height:100%;object-fit:cover;}
+.card-row-name{flex:1;font-size:var(--text-sm);font-weight:600;text-transform:capitalize;}
+.stepper{display:flex;align-items:center;gap:var(--space-2);}
+.stepper-btn{width:32px;height:32px;border-radius:var(--radius-md);
+  background:var(--surface-offset);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--transition),transform 0.1s;flex-shrink:0;}
+.stepper-btn:active{transform:scale(0.92);}
+.stepper-val{font-size:var(--text-base);font-weight:700;min-width:24px;text-align:center;}
+.btn-distribute{width:100%;height:50px;background:var(--accent);color:var(--accent-fg);
+  font-size:var(--text-base);font-weight:700;border-radius:var(--radius-xl);
+  margin-top:var(--space-4);transition:opacity var(--transition),transform 0.1s;}
+.btn-distribute:active{transform:scale(0.98);}
+.btn-distribute:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ── PLAYER MANAGEMENT ── */
+.player-input-row{display:flex;gap:var(--space-2);margin-bottom:var(--space-3);}
+.player-input{flex:1;height:44px;background:var(--surface-offset);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:0 var(--space-3);color:var(--text);
+  font-size:var(--text-sm);transition:border-color var(--transition);}
+.player-input::placeholder{color:var(--text-faint);}
+.player-input:focus{outline:none;border-color:var(--accent);}
+.btn-add-player{width:44px;height:44px;background:var(--accent);color:var(--accent-fg);
+  border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:opacity var(--transition),transform 0.1s;}
+.btn-add-player:active{transform:scale(0.92);}
+.btn-add-player:disabled{opacity:0.4;cursor:not-allowed;}
+.player-list-item{display:flex;align-items:center;gap:var(--space-3);
+  padding:var(--space-2);border-radius:var(--radius-lg);transition:background var(--transition);}
+.player-list-item:hover{background:rgba(255,255,255,0.04);}
+[data-theme="light"] .player-list-item:hover{background:rgba(39,0,1,0.04);}
+.player-list-name{flex:1;font-size:var(--text-sm);font-weight:600;}
+.btn-delete{width:32px;height:32px;color:rgba(220,50,50,0.7);border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  transition:color var(--transition),background var(--transition);}
+.btn-delete:hover{color:#e03535;background:rgba(220,50,50,0.10);}
+.empty-players-text{font-size:var(--text-xs);color:var(--text-faint);
+  padding:var(--space-2);font-style:italic;}
+
+/* ── CHARACTER GRID ── */
+.char-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-5);margin-top:var(--space-5);}
+.char-card-btn{display:flex;flex-direction:column;align-items:center;gap:var(--space-2);
+  background:none;border:none;cursor:pointer;transition:transform 0.2s var(--spring);position:relative;}
+.char-card-btn:active{transform:scale(0.95);}
+/* FULL-BLEED IMAGE card — no padding, no emoji container */
+.char-card-img-wrap{width:100%;aspect-ratio:1;border-radius:var(--radius-2xl);
+  overflow:hidden;position:relative;background:var(--surface-offset);
+  box-shadow:var(--shadow-md);transition:box-shadow 0.3s ease;}
+.char-card-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform 0.3s ease;}
+.char-card-btn:hover .char-card-img-wrap img{transform:scale(1.05);}
+.char-card-overlay{position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(to top,rgba(0,0,0,0.75),transparent);
+  padding:var(--space-3) var(--space-2) var(--space-2);
+  font-size:var(--text-xs);font-weight:700;color:#fff;text-align:center;}
+.char-card-name{font-size:var(--text-sm);font-weight:700;color:var(--text);
+  text-align:center;text-transform:capitalize;}
+.playing-indicator{position:absolute;top:var(--space-2);right:var(--space-2);
+  background:rgba(255,233,222,0.92);color:#270001;border-radius:var(--radius-full);
+  padding:3px 8px;font-size:10px;font-weight:700;letter-spacing:0.05em;
+  pointer-events:none;display:none;}
+.char-card-img-wrap.playing .playing-indicator{display:block;}
+
+@keyframes pulse-glow{
+  0%,100%{box-shadow:0 0 0 3px #FFE9DE,0 0 16px rgba(255,233,222,0.3),var(--shadow-md);}
+  50%{box-shadow:0 0 0 4px #FFE9DE,0 0 28px rgba(255,233,222,0.55),var(--shadow-md);}
+}
+.char-card-img-wrap.playing{animation:pulse-glow 1.4s ease-in-out infinite;}
+[data-theme="light"] .char-card-img-wrap.playing{animation:pulse-glow-day 1.4s ease-in-out infinite;}
+@keyframes pulse-glow-day{
+  0%,100%{box-shadow:0 0 0 3px #270001,0 0 16px rgba(39,0,1,0.25),var(--shadow-md);}
+  50%{box-shadow:0 0 0 4px #270001,0 0 28px rgba(39,0,1,0.4),var(--shadow-md);}
+}
+
+/* ── RESET BTN ── */
+.btn-reset{display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+  width:100%;height:48px;background:rgba(220,50,50,0.15);border:1px solid rgba(220,50,50,0.35);
+  border-radius:var(--radius-xl);color:#e05050;font-size:var(--text-sm);font-weight:700;
+  margin-top:var(--space-6);transition:background var(--transition),transform 0.1s;}
+.btn-reset:active{transform:scale(0.98);}
+.btn-reset:hover{background:rgba(220,50,50,0.22);}
+
+/* ── BOTTOM BANNER ── */
+.bottom-banner{position:fixed;bottom:0;left:0;right:0;z-index:100;pointer-events:none;}
+.bottom-gradient{height:80px;background:linear-gradient(to bottom,transparent,var(--gradient-bottom));pointer-events:none;}
+.bottom-btn-wrap{background:var(--gradient-bottom);padding:0 var(--space-8) var(--space-8);pointer-events:all;}
+.btn-toggle-phase{width:100%;max-width:480px;margin:0 auto;display:block;
+  height:64px;background:var(--accent);color:var(--accent-fg);
+  border-radius:var(--radius-2xl);font-family:var(--font-display);
+  font-size:var(--text-lg);font-weight:700;letter-spacing:0.02em;
+  transition:transform 0.15s var(--spring),box-shadow var(--transition);box-shadow:var(--shadow-lg);}
+.btn-toggle-phase:active{transform:scale(0.97);}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.25s ease;backdrop-filter:blur(4px);}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-sheet{width:100%;max-width:480px;background:#120001;
+  border-radius:var(--radius-2xl) var(--radius-2xl) 0 0;
+  max-height:90dvh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
+  overflow:hidden;}
+.modal-overlay.open .modal-sheet{transform:translateY(0);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-5) var(--space-5) var(--space-3);
+  border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
+.modal-title{font-family:var(--font-display);font-size:var(--text-lg);font-weight:700;color:#FFE9DE;}
+.modal-close{width:36px;height:36px;background:rgba(255,255,255,0.10);
+  border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;
+  color:rgba(255,233,222,0.7);transition:background var(--transition);}
+.modal-close:hover{background:rgba(255,255,255,0.18);}
+.modal-subtitle{padding:var(--space-3) var(--space-5) var(--space-2);font-size:var(--text-sm);
+  color:rgba(255,233,222,0.65);text-align:center;flex-shrink:0;}
+.modal-scroll{overflow-y:auto;flex:1;padding:var(--space-2) var(--space-5);}
+.modal-scroll::-webkit-scrollbar{width:4px;}
+.modal-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px;}
+.modal-footer{padding:var(--space-4) var(--space-5) max(var(--space-6),env(safe-area-inset-bottom));
+  border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
+
+/* ── MODAL PLAYER ROW ── */
+.modal-player-row{display:flex;align-items:center;gap:var(--space-3);
+  padding:var(--space-3) var(--space-4);border-radius:var(--radius-xl);cursor:pointer;
+  margin-bottom:var(--space-2);background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  transition:background var(--transition),border-color var(--transition),transform 0.1s;
+  user-select:none;}
+.modal-player-row:active{transform:scale(0.98);}
+.modal-player-row.selected-dead{background:rgba(200,30,30,0.15);border-color:rgba(200,30,30,0.40);}
+.modal-player-row.selected-cupidon{background:rgba(200,30,30,0.15);border-color:rgba(200,30,30,0.45);}
+.modal-player-row.selected-flute{background:rgba(120,0,220,0.15);border-color:rgba(150,30,255,0.45);}
+.modal-player-row.linked-auto{background:rgba(200,30,30,0.08);border-color:rgba(200,30,30,0.25);cursor:default;}
+.modal-player-icon{flex-shrink:0;width:24px;text-align:center;}
+.modal-player-name-wrap{flex:1;}
+.modal-player-name{font-size:var(--text-base);font-weight:600;color:#FFE9DE;}
+.modal-player-sub{font-size:var(--text-xs);color:rgba(220,80,80,0.85);margin-top:2px;}
+.modal-dead-emoji{font-size:var(--text-base);}
+
+/* ── NO DEAD ROW ── */
+.no-dead-row{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);
+  border-radius:var(--radius-xl);cursor:pointer;margin-bottom:var(--space-3);
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
+  transition:background var(--transition),border-color var(--transition);user-select:none;}
+.no-dead-row.active{background:rgba(255,233,222,0.10);border-color:rgba(255,233,222,0.40);}
+.no-dead-text{font-size:var(--text-base);font-weight:600;color:#FFE9DE;flex:1;}
+
+/* ── DIVIDER ── */
+.or-divider{display:flex;align-items:center;gap:var(--space-3);margin:var(--space-3) 0;}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.12);}
+.or-divider span{font-size:var(--text-xs);color:rgba(255,233,222,0.4);}
+
+/* ── ALERT BANNER ── */
+.alert-banner{display:flex;align-items:flex-start;gap:var(--space-3);
+  padding:var(--space-3) var(--space-4);border-radius:var(--radius-xl);
+  margin-bottom:var(--space-3);font-size:var(--text-sm);font-weight:600;}
+.alert-banner.red{background:rgba(200,30,30,0.20);border:1px solid rgba(200,30,30,0.45);color:#FFE9DE;}
+.alert-banner.purple{background:rgba(120,0,220,0.20);border:1px solid rgba(150,30,255,0.45);color:#FFE9DE;}
+
+/* ── CONFIRM / SAVE BTN ── */
+.btn-confirm{width:100%;height:58px;border-radius:var(--radius-xl);font-size:var(--text-base);
+  font-weight:700;transition:opacity var(--transition),transform 0.1s;
+  background:#FFE9DE;color:#270001;}
+.btn-confirm:active{transform:scale(0.98);}
+.btn-confirm:disabled{opacity:0.35;cursor:not-allowed;}
+.save-selection-btn{width:100%;height:54px;background:#FFE9DE;color:#270001;
+  border-radius:var(--radius-xl);font-size:var(--text-base);font-weight:700;
+  transition:opacity var(--transition),transform 0.1s;}
+.save-selection-btn:disabled{opacity:0.45;cursor:not-allowed;}
+.save-selection-btn:active{transform:scale(0.97);}
+
+/* ── DISTRIBUTE FULL SCREEN ── */
+.distribute-modal-overlay{position:fixed;inset:0;background:#120001;z-index:300;
+  display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.25s ease;}
+.distribute-modal-overlay.open{opacity:1;pointer-events:all;}
+.distribute-header{display:flex;align-items:center;justify-content:space-between;
+  padding:var(--space-5) var(--space-5) var(--space-3);flex-shrink:0;}
+.progress-text{font-size:var(--text-base);font-weight:700;color:rgba(255,233,222,0.75);}
+.btn-close-dist{width:42px;height:42px;background:rgba(255,255,255,0.12);
+  border-radius:var(--radius-full);display:flex;align-items:center;justify-content:center;
+  color:white;transition:background var(--transition);}
+.btn-close-dist:hover{background:rgba(255,255,255,0.2);}
+.distribute-content{flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:0 24px;gap:24px;}
+.distribute-footer{padding:var(--space-4) var(--space-5) max(var(--space-6),env(safe-area-inset-bottom));flex-shrink:0;}
+
+/* Revealed card — full image */
+@keyframes card-reveal{
+  from{opacity:0;transform:scale(0.75) rotateY(60deg);}
+  to{opacity:1;transform:scale(1) rotateY(0deg);}
+}
+.revealed-card{display:flex;flex-direction:column;align-items:center;gap:var(--space-4);
+  animation:card-reveal 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+.revealed-card-img-wrap{width:220px;height:220px;border-radius:var(--radius-2xl);
+  overflow:hidden;border:3px solid #FFE9DE;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);}
+.revealed-card-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.revealed-card-name{font-family:var(--font-display);font-size:var(--text-xl);font-weight:900;
+  color:#FFE9DE;text-align:center;text-transform:capitalize;}
+.revealed-card-num{font-size:var(--text-xs);color:rgba(255,233,222,0.5);font-weight:700;}
+
+/* Hidden phone state */
+.hidden-phone{display:flex;flex-direction:column;align-items:center;gap:var(--space-4);
+  color:rgba(255,233,222,0.8);text-align:center;}
+.hidden-phone-title{font-family:var(--font-display);font-size:var(--text-xl);
+  font-weight:900;color:#FFE9DE;}
+.hidden-phone-desc{font-size:var(--text-sm);color:rgba(255,233,222,0.65);
+  max-width:28ch;line-height:1.5;}
+
+/* Player chips */
+.player-picker{display:flex;flex-direction:column;gap:var(--space-3);width:100%;max-width:360px;}
+.player-picker-label{font-size:var(--text-base);font-weight:700;color:#FFE9DE;text-align:center;}
+.player-chip-row{display:flex;flex-wrap:wrap;gap:var(--space-2);justify-content:center;}
+.player-chip{padding:var(--space-2) var(--space-4);border-radius:var(--radius-full);
+  font-size:var(--text-sm);font-weight:600;background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.18);color:rgba(255,233,222,0.85);
+  transition:background var(--transition),border-color var(--transition),color var(--transition),transform 0.1s;}
+.player-chip:active{transform:scale(0.95);}
+.player-chip.selected{background:#FFE9DE;border-color:#FFE9DE;color:#270001;}
+
+/* ── VOYANTE IMAGE REVEAL ── */
+.voyante-reveal{display:flex;flex-direction:column;align-items:center;gap:var(--space-5);
+  padding:var(--space-8) var(--space-5);animation:card-reveal 0.3s ease both;}
+.voyante-reveal-img-wrap{width:180px;height:180px;border-radius:var(--radius-2xl);
+  overflow:hidden;border:3px solid #FFE9DE;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.voyante-reveal-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.voyante-reveal-name{font-size:var(--text-sm);color:rgba(255,233,222,0.6);font-weight:700;}
+.voyante-reveal-card{font-family:var(--font-display);font-size:var(--text-xl);
+  font-weight:700;color:#FFE9DE;}
+.voyante-player-row{display:flex;align-items:center;padding:var(--space-4);
+  border-radius:var(--radius-xl);background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.08);margin-bottom:var(--space-2);cursor:pointer;
+  transition:background var(--transition),transform 0.1s;}
+.voyante-player-row:active{transform:scale(0.98);}
+.voyante-player-row:hover{background:rgba(255,255,255,0.12);}
+.voyante-player-row span{flex:1;font-size:var(--text-base);font-weight:600;color:#FFE9DE;}
+
+/* ── VOLEUR ── */
+.voleur-swap-done{display:flex;flex-direction:column;align-items:center;gap:var(--space-5);
+  padding:var(--space-10) var(--space-5);text-align:center;animation:card-reveal 0.3s ease both;}
+.voleur-done-icon{font-size:64px;}
+.voleur-done-title{font-family:var(--font-display);font-size:var(--text-xl);
+  font-weight:900;color:#FFE9DE;}
+.voleur-done-info{font-size:var(--text-sm);color:rgba(255,233,222,0.65);line-height:1.6;}
+
+@keyframes voleur-card-in{
+  from{opacity:0;transform:scale(0.8) rotateY(40deg);}
+  to{opacity:1;transform:scale(1) rotateY(0deg);}
+}
+.voleur-card-preview{display:flex;flex-direction:column;align-items:center;gap:var(--space-5);
+  padding:var(--space-6) var(--space-5);animation:voleur-card-in 0.35s cubic-bezier(0.34,1.4,0.64,1) both;}
+.voleur-preview-img-wrap{width:200px;height:200px;border-radius:var(--radius-2xl);
+  overflow:hidden;border:3px solid #FFE9DE;box-shadow:0 8px 40px rgba(0,0,0,0.6);}
+.voleur-preview-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+
+/* ── SWAP BUTTONS ── */
+.btn-swap{width:100%;height:58px;background:#FFE9DE;color:#270001;
+  border-radius:var(--radius-xl);font-size:var(--text-base);font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:var(--space-2);
+  margin-bottom:var(--space-3);transition:transform 0.1s,box-shadow var(--transition);
+  box-shadow:var(--shadow-md);}
+.btn-swap:active{transform:scale(0.97);}
+.btn-ghost{width:100%;height:48px;background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.14);border-radius:var(--radius-xl);
+  font-size:var(--text-sm);font-weight:600;color:rgba(255,233,222,0.65);
+  transition:background var(--transition),transform 0.1s;}
+.btn-ghost:active{transform:scale(0.97);}
+
+/* DAY VOTE modal — light theme */
+#dayvote-modal .modal-sheet{background:#FFF5EE;}
+#dayvote-modal .modal-header{border-color:rgba(39,0,1,0.08);}
+#dayvote-modal .modal-title{color:#270001;}
+#dayvote-modal .modal-subtitle{color:rgba(39,0,1,0.6);}
+#dayvote-modal .modal-close{background:rgba(39,0,1,0.08);color:rgba(39,0,1,0.6);}
+#dayvote-modal .modal-footer{border-color:rgba(39,0,1,0.08);background:#FFF5EE;}
+#dayvote-modal .modal-scroll::-webkit-scrollbar-thumb{background:rgba(39,0,1,0.15);}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ MAIN APP ══════════════ -->
+<div class="app" id="app">
+  <header class="header">
+    <h1>🐺 Loups-Garou</h1>
+    <div class="header-subtitle" id="phase-label">Village éveillé ☀️</div>
+  </header>
+
+  <div id="dead-banner" class="dead-banner" style="display:none">
+    <div class="dead-banner-title">☠️ Morts au cours de la partie</div>
+    <div id="dead-list"></div>
+  </div>
+
+  <div id="jdf-win-banner" class="jdf-win-banner" style="display:none">
+    <span>🎵</span>
+    <span>Le Joueur de Flûte a charmé tout le village — il a gagné !</span>
+  </div>
+
+  <div id="day-controls">
+    <!-- Card setup -->
+    <div class="collapsible" id="card-setup">
+      <button class="collapsible-header" onclick="toggleCollapsible('card-setup')">
+        <div>
+          <div class="collapsible-title">Cartes à révéler</div>
+          <div class="collapsible-sub" id="card-count-sub">Optionnel · 0 sélectionnées</div>
+        </div>
+        <i data-lucide="chevron-down" class="collapsible-icon" width="20" height="20"></i>
+      </button>
+      <div class="collapsible-body">
+        <div class="collapsible-inner">
+          <div id="card-setup-rows"></div>
+          <button class="btn-distribute" id="btn-distribute" onclick="openDistribute()" disabled>
+            Distribuer 0 carte
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Player management -->
+    <div class="collapsible" id="player-mgmt">
+      <button class="collapsible-header" onclick="toggleCollapsible('player-mgmt')">
+        <div>
+          <div class="collapsible-title">Gestion des joueurs</div>
+          <div class="collapsible-sub" id="player-count-sub">0 joueur enregistré</div>
+        </div>
+        <i data-lucide="chevron-down" class="collapsible-icon" width="20" height="20"></i>
+      </button>
+      <div class="collapsible-body">
+        <div class="collapsible-inner">
+          <div class="player-input-row">
+            <input type="text" class="player-input" id="player-name-input"
+              placeholder="Nom du joueur" onkeydown="if(event.key==='Enter') addPlayer()">
+            <button class="btn-add-player" id="btn-add-player" onclick="addPlayer()" disabled>
+              <i data-lucide="plus" width="20" height="20"></i>
+            </button>
+          </div>
+          <div id="player-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="char-grid" id="char-grid"></div>
+
+  <button class="btn-reset" id="btn-reset" style="display:none" onclick="resetCupidonFlute()">
+    <i data-lucide="rotate-ccw" width="18" height="18"></i>
+    Réinitialiser Cupidon / Flûte
+  </button>
+</div>
+
+<!-- ══════════════ BOTTOM BANNER ══════════════ -->
+<div class="bottom-banner">
+  <div class="bottom-gradient"></div>
+  <div class="bottom-btn-wrap">
+    <button class="btn-toggle-phase" id="btn-phase" onclick="togglePhase()">
+      Endormir le village
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ DISTRIBUTE (FULL SCREEN) ══════════════ -->
+<div class="distribute-modal-overlay" id="distribute-modal">
+  <div class="distribute-header">
+    <div class="progress-text" id="dist-progress">1 / 0</div>
+    <button class="btn-close-dist" onclick="closeDistribute()">
+      <i data-lucide="x" width="20" height="20"></i>
+    </button>
+  </div>
+  <div class="distribute-content" id="dist-content"></div>
+  <div class="distribute-footer">
+    <button class="btn-confirm" id="dist-action-btn" onclick="handleDistAction()">
+      Révéler ma carte
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ WAKE-UP MODAL ══════════════ -->
+<div class="modal-overlay" id="wakeup-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Qui est mort ?</div>
+      <button class="modal-close" onclick="closeModal('wakeup-modal')">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <div class="modal-subtitle">Sélectionne les joueurs morts cette nuit</div>
+    <div class="modal-scroll" id="wakeup-body"></div>
+    <div class="modal-footer">
+      <button class="btn-confirm" id="wakeup-confirm-btn" onclick="confirmWakeUp()" disabled>
+        Réveiller le village
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ DAY VOTE MODAL ══════════════ -->
+<div class="modal-overlay" id="dayvote-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Vote du village</div>
+      <button class="modal-close" onclick="closeModal('dayvote-modal')">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <div class="modal-subtitle" style="color:rgba(39,0,1,0.6)">Qui a été éliminé par le vote ?</div>
+    <div class="modal-scroll" id="dayvote-body"></div>
+    <div class="modal-footer">
+      <button class="btn-confirm" id="dayvote-confirm-btn" onclick="confirmDayVote()" disabled
+        style="background:#270001;color:#FFE9DE;">
+        Confirmer le vote
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ VOYANTE MODAL ══════════════ -->
+<div class="modal-overlay" id="voyante-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Voyante</div>
+      <button class="modal-close" onclick="closeModal('voyante-modal')">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <div class="modal-subtitle">Sélectionne un joueur pour voir sa carte</div>
+    <div class="modal-scroll" id="voyante-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════ CUPIDON MODAL ══════════════ -->
+<div class="modal-overlay" id="cupidon-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Cupidon</div>
+      <button class="modal-close" onclick="closeModal('cupidon-modal')">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <div class="modal-subtitle">Choisissez les deux amants à lier</div>
+    <div class="modal-scroll" id="cupidon-body"></div>
+    <div class="modal-footer">
+      <button class="save-selection-btn" id="cupidon-save-btn" onclick="saveCupidon()" disabled>
+        Lier les amants (0/2)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FLÛTE MODAL ══════════════ -->
+<div class="modal-overlay" id="flute-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Joueur de Flûte</div>
+      <button class="modal-close" onclick="closeModal('flute-modal')">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <div class="modal-subtitle">Choisissez les joueurs charmés</div>
+    <div class="modal-scroll" id="flute-body"></div>
+    <div class="modal-footer">
+      <button class="save-selection-btn" id="flute-save-btn" onclick="saveFlute()">
+        Enregistrer les charmés (0)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ VOLEUR MODAL ══════════════ -->
+<div class="modal-overlay" id="voleur-modal">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div class="modal-title">Voleur</div>
+      <button class="modal-close" onclick="closeModal('voleur-modal')">
+        <i data-lucide="x" width="18" height="18"></i>
+      </button>
+    </div>
+    <div class="modal-scroll" id="voleur-body"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  SOUND MANAGER — crossfade like Swift AVAudioPlayer
+// ════════════════════════════════════════
+const SoundManager = (() => {
+  let currentAudio = null;
+  let currentlyPlayingName = null;
+  const FADE_STEPS = 12;
+  const FADE_DURATION = 450; // ms
+
+  function fade(audio, from, to, onDone) {
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      audio.volume = Math.max(0, Math.min(1, from + (to - from) * (step / FADE_STEPS)));
+      if (step >= FADE_STEPS) {
+        clearInterval(interval);
+        if (onDone) onDone();
+      }
+    }, FADE_DURATION / FADE_STEPS);
+  }
+
+  function play(name) {
+    // Encode special chars in filename
+    const encodedName = encodeURIComponent(name);
+    const url = `./${encodedName}.mp3`;
+    const next = new Audio(url);
+    next.loop = true;
+
+    if (currentAudio) {
+      const prev = currentAudio;
+      next.volume = 0;
+      next.play().catch(() => {});
+      fade(prev, prev.volume, 0, () => { prev.pause(); prev.src = ''; });
+      fade(next, 0, 1);
+    } else {
+      next.volume = 1;
+      next.play().catch(() => {});
+    }
+    currentAudio = next;
+    currentlyPlayingName = name;
+    renderCharGrid(); // update playing glow
+  }
+
+  function stop() {
+    if (!currentAudio) return;
+    const prev = currentAudio;
+    currentAudio = null;
+    currentlyPlayingName = null;
+    fade(prev, prev.volume, 0, () => { prev.pause(); prev.src = ''; });
+    renderCharGrid();
+  }
+
+  function isPlaying(name) { return currentlyPlayingName === name; }
+  function getCurrentName() { return currentlyPlayingName; }
+
+  return { play, stop, isPlaying, getCurrentName };
+})();
+
+// ════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════
+let isVillageAwake = true;
+let players = JSON.parse(localStorage.getItem('lg_players') || '[]');
+players = players.map(p => ({ id: p.id || crypto.randomUUID(), name: p.name }));
+let roleAssignments = [];
+let cupidonSelection = { firstPlayerID: null, secondPlayerID: null };
+let fluteSelection = new Set();
+let deadPlayers = [];
+
+// Card counts
+const cardCounts = {
+  'voyante':1,'cupidon':1,'voleur':1,'loups':2,'sorcière':1,'chasseur':1,'joueur de flute':1
+};
+
+// imageName maps to the actual file (matches Swift imageName exactly)
+const nightCharacters = [
+  { id:'cupidon',         name:'cupidon',          soundName:'cupidon',         imageName:'cupidon' },
+  { id:'voleur',          name:'voleur',            soundName:'voleur',          imageName:'voleur' },
+  { id:'voyante',         name:'voyante',           soundName:'voyante',         imageName:'voyante' },
+  { id:'loups',           name:'loups',             soundName:'loups',           imageName:'loups' },
+  { id:'sorcière',        name:'sorcière',          soundName:'sorcière',        imageName:'sorciere' },
+  { id:'chasseur',        name:'chasseur',          soundName:'chasseur',        imageName:'chasseur' },
+  { id:'joueur de flute', name:'joueur de flute',   soundName:'joueur de flute', imageName:'joueurdeflute' },
+];
+const dayCharacters = [
+  { id:'chasseur',  name:'chasseur', soundName:'chasseur',        imageName:'chasseur' },
+  { id:'attente',   name:'attente',  soundName:'attente',         imageName:'villageois' },
+  { id:'vote',      name:'vote',     soundName:'vote',            imageName:'vote' },
+];
+const distributableCards = [
+  { id:'voyante',           name:'voyante',          soundName:'voyante',         imageName:'voyante' },
+  { id:'cupidon',           name:'cupidon',          soundName:'cupidon',         imageName:'cupidon' },
+  { id:'voleur',            name:'voleur',           soundName:'voleur',          imageName:'voleur' },
+  { id:'loups',             name:'loups garous',     soundName:'loups',           imageName:'loups' },
+  { id:'sorcière',          name:'sorcière',         soundName:'sorcière',        imageName:'sorciere' },
+  { id:'chasseur',          name:'chasseur',         soundName:'chasseur',        imageName:'chasseur' },
+  { id:'joueur de flute',   name:'joueur de flute',  soundName:'joueur de flute', imageName:'joueurdeflute' },
+];
+
+// Distribute state
+let distCards = [], distCurrentIndex = 0, distCardVisible = false;
+let distAssignments = [], distSelectedPlayerID = null;
+
+// Modal temp state
+let wakeupSelectedIDs = new Set(), wakeupNoDead = false;
+let dayvoteSelectedIDs = new Set(), dayvoteNoDead = false;
+let cupidonTempIDs = new Set();
+let fluteTempIDs = new Set();
+let voleurSelectedVictim = null, voleurShowPreview = false, voleurSwapDone = false;
+let voyanteSelectedAssignment = null;
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+function init() {
+  lucide.createIcons();
+  renderAll();
+  document.getElementById('player-name-input').addEventListener('input', e => {
+    document.getElementById('btn-add-player').disabled = e.target.value.trim().length === 0;
+  });
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) { overlay.classList.remove('open'); lucide.createIcons(); }
+    });
+  });
+}
+
+function renderAll() {
+  renderPhase();
+  renderDeadBanner();
+  renderJdfWin();
+  renderDayControls();
+  renderCardSetupRows();
+  renderPlayerList();
+  updatePlayerCountSub();
+  renderCharGrid();
+  renderResetBtn();
+  updateDistributeBtn();
+  lucide.createIcons();
+}
+
+// ════════════════════════════════════════
+//  PHASE
+// ════════════════════════════════════════
+function renderPhase() {
+  document.getElementById('phase-label').textContent = isVillageAwake ? 'Village éveillé ☀️' : 'Village endormi 🌙';
+  document.getElementById('btn-phase').textContent = isVillageAwake ? 'Endormir le village' : 'Réveiller le village';
+  document.documentElement.setAttribute('data-theme', isVillageAwake ? 'light' : 'dark');
+}
+
+function togglePhase() {
+  if (isVillageAwake) {
+    SoundManager.play('dormir');
+    isVillageAwake = false;
+    renderAll();
+  } else {
+    openWakeUpModal();
+  }
+}
+
+// ════════════════════════════════════════
+//  DEAD BANNER
+// ════════════════════════════════════════
+function renderDeadBanner() {
+  const banner = document.getElementById('dead-banner');
+  if (!deadPlayers.length) { banner.style.display = 'none'; return; }
+  banner.style.display = 'block';
+  document.getElementById('dead-list').innerHTML = deadPlayers.map(p =>
+    `<div class="dead-item"><div class="dead-dot"></div><span>${esc(p.name)}</span></div>`
+  ).join('');
+}
+
+// ════════════════════════════════════════
+//  JDF WIN
+// ════════════════════════════════════════
+function checkJdfWon() {
+  if (fluteSelection.size === 0 || !players.length) return false;
+  const jdfID = roleAssignments.find(a => a.cardSoundName === 'joueur de flute')?.playerID;
+  const deadIDs = new Set(deadPlayers.map(p => p.id));
+  const alive = players.filter(p => !deadIDs.has(p.id) && p.id !== jdfID);
+  if (!alive.length) return false;
+  return alive.every(p => fluteSelection.has(p.id));
+}
+function renderJdfWin() {
+  document.getElementById('jdf-win-banner').style.display = (isVillageAwake && checkJdfWon()) ? 'flex' : 'none';
+}
+
+// ════════════════════════════════════════
+//  CARD SETUP
+// ════════════════════════════════════════
+function renderDayControls() {
+  document.getElementById('day-controls').style.display = isVillageAwake ? 'block' : 'none';
+}
+
+function renderCardSetupRows() {
+  const c = document.getElementById('card-setup-rows');
+  c.innerHTML = distributableCards.map(card => `
+    <div class="card-row">
+      <div class="card-row-img">
+        <img src="./${card.imageName}.png" alt="${esc(card.name)}" loading="lazy"
+          onerror="this.style.display='none';this.parentElement.style.background='var(--surface-offset)'">
+      </div>
+      <div class="card-row-name">${esc(card.name)}</div>
+      <div class="stepper">
+        <button class="stepper-btn" onclick="adjustCount('${card.soundName}',-1)">
+          <i data-lucide="minus" width="14" height="14"></i>
+        </button>
+        <div class="stepper-val" id="count-${CSS.escape(card.soundName)}">${cardCounts[card.soundName]||0}</div>
+        <button class="stepper-btn" onclick="adjustCount('${card.soundName}',1)">
+          <i data-lucide="plus" width="14" height="14"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+
+function adjustCount(soundName, delta) {
+  cardCounts[soundName] = Math.max(0, Math.min(12, (cardCounts[soundName]||0) + delta));
+  const el = document.getElementById(`count-${CSS.escape(soundName)}`);
+  if (el) el.textContent = cardCounts[soundName];
+  updateDistributeBtn();
+}
+
+function getTotalCards() {
+  return distributableCards.reduce((s,c) => s + (cardCounts[c.soundName]||0), 0);
+}
+function updateDistributeBtn() {
+  const t = getTotalCards();
+  const btn = document.getElementById('btn-distribute');
+  btn.disabled = t === 0;
+  btn.textContent = `Distribuer ${t} carte${t>1?'s':''}`;
+  document.getElementById('card-count-sub').textContent = `Optionnel · ${t} sélectionnée${t>1?'s':''}`;
+}
+
+// ════════════════════════════════════════
+//  PLAYER MANAGEMENT
+// ════════════════════════════════════════
+function addPlayer() {
+  const input = document.getElementById('player-name-input');
+  const name = input.value.trim();
+  if (!name) return;
+  players.push({ id: crypto.randomUUID(), name });
+  input.value = '';
+  document.getElementById('btn-add-player').disabled = true;
+  localStorage.setItem('lg_players', JSON.stringify(players));
+  renderPlayerList();
+  updatePlayerCountSub();
+}
+function deletePlayer(id) {
+  players = players.filter(p => p.id !== id);
+  localStorage.setItem('lg_players', JSON.stringify(players));
+  renderPlayerList();
+  updatePlayerCountSub();
+}
+function renderPlayerList() {
+  const list = document.getElementById('player-list');
+  if (!players.length) {
+    list.innerHTML = `<div class="empty-players-text">Aucun joueur défini. Ajoutez des joueurs pour assigner les rôles.</div>`;
+    return;
+  }
+  list.innerHTML = players.map(p => `
+    <div class="player-list-item">
+      <div class="player-list-name">${esc(p.name)}</div>
+      <button class="btn-delete" onclick="deletePlayer('${p.id}')" aria-label="Supprimer ${esc(p.name)}">
+        <i data-lucide="trash-2" width="16" height="16"></i>
+      </button>
+    </div>
+  `).join('');
+  lucide.createIcons();
+}
+function updatePlayerCountSub() {
+  const n = players.length;
+  document.getElementById('player-count-sub').textContent = `${n} joueur${n!==1?'s':''} enregistré${n!==1?'s':''}`;
+}
+
+// ════════════════════════════════════════
+//  CHARACTER GRID — full-bleed images
+// ════════════════════════════════════════
+function renderCharGrid() {
+  const grid = document.getElementById('char-grid');
+  const chars = isVillageAwake ? dayCharacters : nightCharacters;
+
+  grid.innerHTML = chars.map(char => {
+    let overlayText = '';
+    if (char.id === 'cupidon' && cupidonSelection.firstPlayerID && cupidonSelection.secondPlayerID) {
+      overlayText = `${getPlayerName(cupidonSelection.firstPlayerID)} & ${getPlayerName(cupidonSelection.secondPlayerID)}`;
+    }
+    if (char.id === 'joueur de flute' && fluteSelection.size > 0) {
+      overlayText = [...fluteSelection].map(id => getPlayerName(id)).filter(Boolean).join(', ');
+    }
+    const isPlaying = SoundManager.isPlaying(char.soundName);
+    const hasAction = roleAssignments.length > 0 &&
+      (['voyante','cupidon','joueur de flute','voleur'].includes(char.id) ||
+       (char.id === 'vote' && isVillageAwake));
+
+    return `
+      <button class="char-card-btn" onclick="handleCardTap('${char.id}')">
+        <div class="char-card-img-wrap ${isPlaying ? 'playing' : ''}">
+          <img src="./${char.imageName}.png" alt="${esc(char.name)}" loading="lazy" width="200" height="200"
+            onerror="this.style.display='none'">
+          ${overlayText ? `<div class="char-card-overlay">${esc(overlayText)}</div>` : ''}
+          <div class="playing-indicator">♪ en cours</div>
+        </div>
+        <div class="char-card-name">${esc(char.name)}</div>
+      </button>
+    `;
+  }).join('');
+}
+
+function getPlayerName(id) {
+  return roleAssignments.find(a => a.playerID === id)?.playerName
+    || players.find(p => p.id === id)?.name || '';
+}
+
+function handleCardTap(cardId) {
+  // Always toggle sound on tap (like Swift app)
+  const char = [...nightCharacters, ...dayCharacters].find(c => c.id === cardId);
+  if (char) {
+    if (SoundManager.isPlaying(char.soundName)) SoundManager.stop();
+    else SoundManager.play(char.soundName);
+  }
+  // Open modal if assignments exist
+  if (!roleAssignments.length) return;
+  if (cardId === 'voyante') openVoyanteModal();
+  else if (cardId === 'cupidon') openCupidonModal();
+  else if (cardId === 'joueur de flute') openFluteModal();
+  else if (cardId === 'voleur') openVoleurModal();
+  else if (cardId === 'vote' && isVillageAwake) openDayVoteModal();
+}
+
+// ════════════════════════════════════════
+//  RESET
+// ════════════════════════════════════════
+function renderResetBtn() {
+  const show = cupidonSelection.firstPlayerID || cupidonSelection.secondPlayerID || fluteSelection.size > 0;
+  document.getElementById('btn-reset').style.display = show ? 'flex' : 'none';
+}
+function resetCupidonFlute() {
+  cupidonSelection = { firstPlayerID: null, secondPlayerID: null };
+  fluteSelection = new Set();
+  renderAll();
+}
+
+// ════════════════════════════════════════
+//  COLLAPSIBLE
+// ════════════════════════════════════════
+function toggleCollapsible(id) {
+  document.getElementById(id).classList.toggle('open');
+  lucide.createIcons();
+}
+
+// ════════════════════════════════════════
+//  MODAL HELPERS
+// ════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); lucide.createIcons(); }
+
+// ════════════════════════════════════════
+//  DISTRIBUTE FLOW
+// ════════════════════════════════════════
+function openDistribute() {
+  distCards = [];
+  distributableCards.forEach(card => {
+    for (let i = 0; i < (cardCounts[card.soundName]||0); i++)
+      distCards.push({ ...card, number: i + 1 });
+  });
+  // shuffle
+  for (let i = distCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [distCards[i], distCards[j]] = [distCards[j], distCards[i]];
+  }
+  distCurrentIndex = 0; distCardVisible = false;
+  distAssignments = []; distSelectedPlayerID = null;
+  // reset game state
+  roleAssignments = [];
+  cupidonSelection = { firstPlayerID: null, secondPlayerID: null };
+  fluteSelection = new Set();
+  deadPlayers = [];
+  SoundManager.stop();
+  document.getElementById('distribute-modal').classList.add('open');
+  renderDistribute();
+}
+function closeDistribute() {
+  document.getElementById('distribute-modal').classList.remove('open');
+  renderAll();
+}
+function renderDistribute() {
+  const total = distCards.length;
+  document.getElementById('dist-progress').textContent =
+    total === 0 ? 'Aucune carte' : `${Math.min(distCurrentIndex+1, total)} / ${total}`;
+
+  const content = document.getElementById('dist-content');
+  const actionBtn = document.getElementById('dist-action-btn');
+
+  if (total === 0) {
+    content.innerHTML = `<div style="color:rgba(255,233,222,0.7);font-size:var(--text-lg);text-align:center">Sélectionne au moins une carte.</div>`;
+    actionBtn.textContent = 'Fermer'; actionBtn.disabled = false; return;
+  }
+
+  const card = distCards[distCurrentIndex];
+  const available = players.filter(p => !distAssignments.some(a => a.playerID === p.id));
+  const needPick = players.length > 0 && available.length > 0;
+
+  if (distCardVisible) {
+    content.innerHTML = `
+      <div class="revealed-card">
+        <div class="revealed-card-img-wrap">
+          <img src="./${card.imageName}.png" alt="${esc(card.name)}" loading="lazy"
+            onerror="this.style.background='#2a0004'">
+        </div>
+        <div class="revealed-card-name">${esc(card.name)}</div>
+        <div class="revealed-card-num">Carte ${card.number}</div>
+      </div>
+    `;
+    actionBtn.textContent = distCurrentIndex === total-1 ? 'Masquer et terminer' : 'Masquer pour passer';
+    actionBtn.disabled = false;
+  } else {
+    const pickerHtml = needPick ? `
+      <div class="player-picker">
+        <div class="player-picker-label">Qui es-tu ?</div>
+        <div class="player-chip-row">
+          ${available.map(p =>
+            `<button class="player-chip ${distSelectedPlayerID===p.id?'selected':''}"
+              onclick="selectDistPlayer('${p.id}')">${esc(p.name)}</button>`
+          ).join('')}
+        </div>
+      </div>` : '';
+    content.innerHTML = `
+      <div class="hidden-phone">
+        <div style="font-size:72px">📱</div>
+        <div class="hidden-phone-title">Téléphone masqué</div>
+        <div class="hidden-phone-desc">Passe le téléphone face cachée, puis révèle uniquement ta carte.</div>
+      </div>
+      ${pickerHtml}
+    `;
+    actionBtn.textContent = 'Révéler ma carte';
+    actionBtn.disabled = needPick && !distSelectedPlayerID;
+  }
+}
+function selectDistPlayer(id) {
+  distSelectedPlayerID = id;
+  renderDistribute();
+}
+function handleDistAction() {
+  const total = distCards.length;
+  if (total === 0) { closeDistribute(); return; }
+  if (distCardVisible) {
+    distCardVisible = false; distSelectedPlayerID = null;
+    if (distCurrentIndex === total-1) { roleAssignments = distAssignments; closeDistribute(); }
+    else { distCurrentIndex++; renderDistribute(); }
+  } else {
+    const card = distCards[distCurrentIndex];
+    if (players.length > 0 && distSelectedPlayerID) {
+      const player = players.find(p => p.id === distSelectedPlayerID);
+      if (player) distAssignments.push({
+        id: crypto.randomUUID(), playerID: player.id, playerName: player.name,
+        cardName: card.name, cardImageName: card.imageName,
+        cardSoundName: card.soundName, cardNumber: card.number
+      });
+    }
+    distCardVisible = true; renderDistribute();
+  }
+}
+
+// ════════════════════════════════════════
+//  SHARED DEATH MODAL HELPER
+// ════════════════════════════════════════
+function getLinkedIDs(sel) {
+  const linked = new Set();
+  if (!cupidonSelection.firstPlayerID || !cupidonSelection.secondPlayerID) return linked;
+  const { firstPlayerID:f, secondPlayerID:s } = cupidonSelection;
+  if (sel.has(f) && !sel.has(s)) linked.add(s);
+  if (sel.has(s) && !sel.has(f)) linked.add(f);
+  return linked;
+}
+function getLiving() {
+  const dead = new Set(deadPlayers.map(p => p.id));
+  return players.filter(p => !dead.has(p.id));
+}
+
+// ════════════════════════════════════════
+//  WAKE-UP MODAL
+// ════════════════════════════════════════
+function openWakeUpModal() {
+  wakeupSelectedIDs = new Set(); wakeupNoDead = false;
+  renderWakeUpBody(); openModal('wakeup-modal');
+}
+function renderWakeUpBody() {
+  const linked = getLinkedIDs(wakeupSelectedIDs);
+  const effective = new Set([...wakeupSelectedIDs, ...linked]);
+  const living = getLiving();
+  let html = '';
+
+  // JdF win
+  if (checkJdfWon()) html += `<div class="alert-banner purple">🎵 Le Joueur de Flûte a charmé tout le village — il a gagné !</div>`;
+  // Cupidon alerts
+  if (cupidonSelection.firstPlayerID && cupidonSelection.secondPlayerID) {
+    const {firstPlayerID:f,secondPlayerID:s} = cupidonSelection;
+    const fn = id => players.find(p=>p.id===id)?.name || "l'autre amant";
+    if (wakeupSelectedIDs.has(f) && !wakeupSelectedIDs.has(s))
+      html += `<div class="alert-banner red">💔 ${esc(fn(s))} meurt aussi (amant lié par Cupidon)</div>`;
+    if (wakeupSelectedIDs.has(s) && !wakeupSelectedIDs.has(f))
+      html += `<div class="alert-banner red">💔 ${esc(fn(f))} meurt aussi (amant lié par Cupidon)</div>`;
+  }
+  if (!living.length)
+    html += `<div class="alert-banner" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1)">ℹ️ Tous les joueurs sont déjà morts.</div>`;
+
+  // No dead row
+  html += `<div class="no-dead-row ${wakeupNoDead?'active':''}" onclick="toggleWakeUpNoDead()">
+    <span style="font-size:22px">${wakeupNoDead?'✅':'⭕'}</span>
+    <span class="no-dead-text">Personne n'est mort</span>
+  </div>`;
+  if (living.length) html += `<div class="or-divider"><span>ou</span></div>`;
+
+  // Players
+  html += living.map(p => {
+    const sel = wakeupSelectedIDs.has(p.id);
+    const lnk = linked.has(p.id);
+    const dead = effective.has(p.id);
+    const rowClass = dead?'selected-dead':(lnk?'linked-auto':'');
+    const icon = lnk ? `<span style="font-size:18px">💔</span>`
+      : `<span style="font-size:20px">${sel?'✅':'⭕'}</span>`;
+    const sub = lnk ? `<div class="modal-player-sub">Mort par lien Cupidon</div>` : '';
+    return `
+      <div class="modal-player-row ${rowClass}" onclick="toggleWakeUpDead('${p.id}')"
+        ${lnk?'style="cursor:default"':''}>
+        <div class="modal-player-icon">${icon}</div>
+        <div class="modal-player-name-wrap">
+          <div class="modal-player-name">${esc(p.name)}</div>${sub}
+        </div>
+        ${dead?'<div class="modal-dead-emoji">☠️</div>':''}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('wakeup-body').innerHTML = html;
+  const canConfirm = !living.length || wakeupNoDead || wakeupSelectedIDs.size > 0;
+  const btn = document.getElementById('wakeup-confirm-btn');
+  btn.disabled = !canConfirm;
+  const count = effective.size;
+  btn.textContent = wakeupNoDead ? "Réveiller — Personne n'est mort"
+    : count===0 ? 'Réveiller le village'
+    : `Réveiller le village — ${count} mort${count>1?'s':''}`;
+}
+function toggleWakeUpNoDead() {
+  wakeupNoDead = !wakeupNoDead;
+  if (wakeupNoDead) wakeupSelectedIDs = new Set();
+  renderWakeUpBody();
+}
+function toggleWakeUpDead(id) {
+  if (getLinkedIDs(wakeupSelectedIDs).has(id)) return;
+  wakeupNoDead = false;
+  if (wakeupSelectedIDs.has(id)) wakeupSelectedIDs.delete(id);
+  else wakeupSelectedIDs.add(id);
+  renderWakeUpBody();
+}
+function confirmWakeUp() {
+  const linked = getLinkedIDs(wakeupSelectedIDs);
+  const eff = new Set([...wakeupSelectedIDs, ...linked]);
+  const newDead = wakeupNoDead ? [] : players.filter(p => eff.has(p.id));
+  const existIDs = new Set(deadPlayers.map(p => p.id));
+  newDead.forEach(p => { if (!existIDs.has(p.id)) deadPlayers.push(p); });
+  // Play wake music
+  if (!wakeupNoDead && newDead.length > 0) SoundManager.play('reveildeath');
+  else SoundManager.play('reveilnodeath');
+  isVillageAwake = true;
+  closeModal('wakeup-modal');
+  renderAll();
+}
+
+// ════════════════════════════════════════
+//  DAY VOTE MODAL
+// ════════════════════════════════════════
+function openDayVoteModal() {
+  dayvoteSelectedIDs = new Set(); dayvoteNoDead = false;
+  renderDayVoteBody(); openModal('dayvote-modal');
+}
+function renderDayVoteBody() {
+  const linked = getLinkedIDs(dayvoteSelectedIDs);
+  const effective = new Set([...dayvoteSelectedIDs, ...linked]);
+  const living = getLiving();
+  const T = '#270001', TM = 'rgba(39,0,1,0.6)', TS = 'rgba(39,0,1,0.35)';
+  let html = '';
+
+  if (cupidonSelection.firstPlayerID && cupidonSelection.secondPlayerID) {
+    const {firstPlayerID:f,secondPlayerID:s} = cupidonSelection;
+    const fn = id => players.find(p=>p.id===id)?.name || "l'autre amant";
+    if (dayvoteSelectedIDs.has(f) && !dayvoteSelectedIDs.has(s))
+      html += `<div class="alert-banner red" style="color:#270001">💔 ${esc(fn(s))} meurt aussi (amant lié par Cupidon)</div>`;
+    if (dayvoteSelectedIDs.has(s) && !dayvoteSelectedIDs.has(f))
+      html += `<div class="alert-banner red" style="color:#270001">💔 ${esc(fn(f))} meurt aussi (amant lié par Cupidon)</div>`;
+  }
+  if (!living.length)
+    html += `<div class="alert-banner" style="background:rgba(39,0,1,0.06);border:1px solid rgba(39,0,1,0.12);color:#270001">ℹ️ Tous les joueurs sont déjà morts.</div>`;
+
+  html += `<div class="no-dead-row ${dayvoteNoDead?'active':''}" onclick="toggleDayVoteNoDead()"
+    style="border-color:rgba(39,0,1,${dayvoteNoDead?0.45:0.12})">
+    <span style="font-size:22px">${dayvoteNoDead?'✅':'⭕'}</span>
+    <span class="no-dead-text" style="color:${T}">Personne n'est éliminé</span>
+  </div>`;
+  if (living.length) html += `<div class="or-divider"><span style="color:rgba(39,0,1,0.4)">ou</span></div>`;
+
+  html += living.map(p => {
+    const sel = dayvoteSelectedIDs.has(p.id);
+    const lnk = linked.has(p.id);
+    const dead = effective.has(p.id);
+    const icon = lnk ? `<span style="font-size:18px">💔</span>`
+      : `<span style="font-size:20px;color:${sel?'red':'rgba(39,0,1,0.35)'}">${sel?'✅':'⭕'}</span>`;
+    const sub = lnk ? `<div class="modal-player-sub">Mort par lien Cupidon</div>` : '';
+    return `
+      <div class="modal-player-row" onclick="toggleDayVoteDead('${p.id}')"
+        style="background:${dead?'rgba(200,30,30,0.08)':'rgba(39,0,1,0.04)'};border-color:${dead?'rgba(200,30,30,0.35)':'rgba(39,0,1,0.10)'}"
+        ${lnk?'style="cursor:default"':''}>
+        <div class="modal-player-icon">${icon}</div>
+        <div class="modal-player-name-wrap">
+          <div class="modal-player-name" style="color:${T}">${esc(p.name)}</div>${sub}
+        </div>
+        ${dead?'<div class="modal-dead-emoji">☠️</div>':''}
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('dayvote-body').innerHTML = html;
+  const canConfirm = !living.length || dayvoteNoDead || dayvoteSelectedIDs.size > 0;
+  const btn = document.getElementById('dayvote-confirm-btn');
+  btn.disabled = !canConfirm;
+  const count = effective.size;
+  btn.textContent = dayvoteNoDead ? "Confirmer — Personne n'est éliminé"
+    : count===0 ? 'Confirmer le vote'
+    : `Confirmer — ${count} éliminé${count>1?'s':''}`;
+}
+function toggleDayVoteNoDead() {
+  dayvoteNoDead = !dayvoteNoDead;
+  if (dayvoteNoDead) dayvoteSelectedIDs = new Set();
+  renderDayVoteBody();
+}
+function toggleDayVoteDead(id) {
+  if (getLinkedIDs(dayvoteSelectedIDs).has(id)) return;
+  dayvoteNoDead = false;
+  if (dayvoteSelectedIDs.has(id)) dayvoteSelectedIDs.delete(id);
+  else dayvoteSelectedIDs.add(id);
+  renderDayVoteBody();
+}
+function confirmDayVote() {
+  const linked = getLinkedIDs(dayvoteSelectedIDs);
+  const eff = new Set([...dayvoteSelectedIDs, ...linked]);
+  const newDead = dayvoteNoDead ? [] : players.filter(p => eff.has(p.id));
+  const existIDs = new Set(deadPlayers.map(p => p.id));
+  newDead.forEach(p => { if (!existIDs.has(p.id)) deadPlayers.push(p); });
+  closeModal('dayvote-modal'); renderAll();
+}
+
+// ════════════════════════════════════════
+//  VOYANTE — shows card IMAGE
+// ════════════════════════════════════════
+function openVoyanteModal() {
+  voyanteSelectedAssignment = null; renderVoyanteBody(); openModal('voyante-modal');
+}
+function renderVoyanteBody() {
+  const body = document.getElementById('voyante-body');
+  if (voyanteSelectedAssignment) {
+    const a = voyanteSelectedAssignment;
+    body.innerHTML = `
+      <div class="voyante-reveal">
+        <div class="voyante-reveal-name">Carte de ${esc(a.playerName)}</div>
+        <div class="voyante-reveal-img-wrap">
+          <img src="./${a.cardImageName}.png" alt="${esc(a.cardName)}" loading="lazy"
+            onerror="this.style.background='#2a0004'">
+        </div>
+        <div class="voyante-reveal-card">${esc(a.cardName)}</div>
+        <button class="btn-confirm" onclick="voyanteHide()" style="margin-top:16px">Masquer la carte</button>
+      </div>
+    `;
+  } else {
+    body.innerHTML = roleAssignments.map(a => `
+      <div class="voyante-player-row" onclick="voyanteSelect('${a.id}')">
+        <span>${esc(a.playerName)}</span>
+        <span style="color:rgba(255,233,222,0.6)"><i data-lucide="eye" width="20" height="20"></i></span>
+      </div>
+    `).join('');
+    lucide.createIcons();
+  }
+}
+function voyanteSelect(id) {
+  voyanteSelectedAssignment = roleAssignments.find(a => a.id === id);
+  renderVoyanteBody();
+}
+function voyanteHide() { voyanteSelectedAssignment = null; renderVoyanteBody(); }
+
+// ════════════════════════════════════════
+//  CUPIDON
+// ════════════════════════════════════════
+function openCupidonModal() {
+  cupidonTempIDs = new Set();
+  if (cupidonSelection.firstPlayerID) cupidonTempIDs.add(cupidonSelection.firstPlayerID);
+  if (cupidonSelection.secondPlayerID) cupidonTempIDs.add(cupidonSelection.secondPlayerID);
+  renderCupidonBody(); openModal('cupidon-modal');
+}
+function renderCupidonBody() {
+  document.getElementById('cupidon-body').innerHTML = roleAssignments.map(a => {
+    const sel = cupidonTempIDs.has(a.playerID);
+    return `
+      <div class="modal-player-row ${sel?'selected-cupidon':''}" onclick="toggleCupidon('${a.playerID}')">
+        <div class="modal-player-icon" style="font-size:20px">${sel?'❤️':'🤍'}</div>
+        <div class="modal-player-name-wrap"><div class="modal-player-name">${esc(a.playerName)}</div></div>
+      </div>
+    `;
+  }).join('');
+  const btn = document.getElementById('cupidon-save-btn');
+  btn.disabled = cupidonTempIDs.size !== 2;
+  btn.textContent = `Lier les amants (${cupidonTempIDs.size}/2)`;
+}
+function toggleCupidon(id) {
+  if (cupidonTempIDs.has(id)) cupidonTempIDs.delete(id);
+  else if (cupidonTempIDs.size < 2) cupidonTempIDs.add(id);
+  renderCupidonBody();
+}
+function saveCupidon() {
+  const list = [...cupidonTempIDs];
+  if (list.length === 2) cupidonSelection = { firstPlayerID: list[0], secondPlayerID: list[1] };
+  closeModal('cupidon-modal'); renderAll();
+}
+
+// ════════════════════════════════════════
+//  FLÛTE
+// ════════════════════════════════════════
+function openFluteModal() {
+  fluteTempIDs = new Set(fluteSelection); renderFluteBody(); openModal('flute-modal');
+}
+function renderFluteBody() {
+  document.getElementById('flute-body').innerHTML = roleAssignments.map(a => {
+    const sel = fluteTempIDs.has(a.playerID);
+    return `
+      <div class="modal-player-row ${sel?'selected-flute':''}" onclick="toggleFlute('${a.playerID}')">
+        <div class="modal-player-icon" style="font-size:20px">${sel?'🎵':'🎶'}</div>
+        <div class="modal-player-name-wrap"><div class="modal-player-name">${esc(a.playerName)}</div></div>
+      </div>
+    `;
+  }).join('');
+  const btn = document.getElementById('flute-save-btn');
+  btn.textContent = `Enregistrer les charmés (${fluteTempIDs.size})`;
+}
+function toggleFlute(id) {
+  if (fluteTempIDs.has(id)) fluteTempIDs.delete(id);
+  else fluteTempIDs.add(id);
+  renderFluteBody();
+}
+function saveFlute() { fluteSelection = new Set(fluteTempIDs); closeModal('flute-modal'); renderAll(); }
+
+// ════════════════════════════════════════
+//  VOLEUR — shows card IMAGE preview
+// ════════════════════════════════════════
+function openVoleurModal() {
+  voleurSelectedVictim = null; voleurShowPreview = false; voleurSwapDone = false;
+  renderVoleurBody(); openModal('voleur-modal');
+}
+function renderVoleurBody() {
+  const body = document.getElementById('voleur-body');
+  const voleur = roleAssignments.find(a => a.cardSoundName === 'voleur');
+  const others = roleAssignments.filter(a => a.cardSoundName !== 'voleur');
+
+  if (voleurSwapDone && voleur && voleurSelectedVictim) {
+    body.innerHTML = `
+      <div class="voleur-swap-done">
+        <div class="voleur-done-icon">✅</div>
+        <div class="voleur-done-title">Échange effectué !</div>
+        <div class="voleur-done-info">
+          ${esc(voleur.playerName)} obtient la carte ${esc(voleurSelectedVictim.cardName)}<br>
+          ${esc(voleurSelectedVictim.playerName)} obtient la carte voleur
+        </div>
+        <button class="btn-confirm" onclick="closeModal('voleur-modal');renderAll();" style="width:100%;margin-top:16px">Fermer</button>
+      </div>
+    `;
+    return;
+  }
+
+  if (voleurShowPreview && voleurSelectedVictim) {
+    const v = voleurSelectedVictim;
+    body.innerHTML = `
+      <div class="voleur-card-preview">
+        <div style="font-size:var(--text-sm);color:rgba(255,233,222,0.65);font-weight:700">Carte de ${esc(v.playerName)}</div>
+        <div class="voleur-preview-img-wrap">
+          <img src="./${v.cardImageName}.png" alt="${esc(v.cardName)}" loading="lazy"
+            onerror="this.style.background='#2a0004'">
+        </div>
+        <div style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:700;color:#FFE9DE;text-transform:capitalize">${esc(v.cardName)}</div>
+        <div style="display:flex;flex-direction:column;gap:12px;width:100%;margin-top:8px">
+          <button class="btn-swap" onclick="performVoleurSwap()">✊ Voler la carte</button>
+          <button class="btn-ghost" onclick="voleurBack()">Changer de joueur</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  body.innerHTML = `
+    <div style="padding:var(--space-5) var(--space-5) var(--space-3)">
+      <div style="font-size:var(--text-base);font-weight:700;color:rgba(255,233,222,0.8);margin-bottom:8px">Qui veux-tu voler ?</div>
+      ${voleur ? `<div style="font-size:var(--text-xs);color:rgba(255,233,222,0.5);margin-bottom:16px">Joueur voleur : ${esc(voleur.playerName)}</div>` : ''}
+    </div>
+    <div style="padding:0 var(--space-5) var(--space-5)">
+      ${others.map(a => `
+        <div class="modal-player-row" onclick="voleurSelectVictim('${a.id}')" style="margin-bottom:8px">
+          <div class="modal-player-name-wrap"><div class="modal-player-name">${esc(a.playerName)}</div></div>
+          <span style="color:rgba(255,233,222,0.5)"><i data-lucide="chevron-right" width="18" height="18"></i></span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  lucide.createIcons();
+}
+function voleurSelectVictim(id) {
+  voleurSelectedVictim = roleAssignments.find(a => a.id === id);
+  voleurShowPreview = true; renderVoleurBody();
+}
+function voleurBack() { voleurSelectedVictim = null; voleurShowPreview = false; renderVoleurBody(); }
+function performVoleurSwap() {
+  const vol = roleAssignments.find(a => a.cardSoundName === 'voleur');
+  const vic = voleurSelectedVictim;
+  if (!vol || !vic) return;
+  const vi = roleAssignments.findIndex(a => a.playerID === vol.playerID);
+  const vci = roleAssignments.findIndex(a => a.playerID === vic.playerID);
+  if (vi < 0 || vci < 0) return;
+  const tmp = { ...roleAssignments[vi] };
+  roleAssignments[vi] = { ...roleAssignments[vi],
+    cardName: roleAssignments[vci].cardName, cardImageName: roleAssignments[vci].cardImageName,
+    cardSoundName: roleAssignments[vci].cardSoundName, cardNumber: roleAssignments[vci].cardNumber };
+  roleAssignments[vci] = { ...roleAssignments[vci],
+    cardName: tmp.cardName, cardImageName: tmp.cardImageName,
+    cardSoundName: tmp.cardSoundName, cardNumber: tmp.cardNumber };
+  voleurSwapDone = true; renderVoleurBody();
+}
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════
+//  START
+// ════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
